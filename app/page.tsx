@@ -108,7 +108,7 @@ export default function MenuPage() {
       {loading && <p>Caricamento...</p>}
       {error && <p className="text-red-500">{error}</p>}
 
-      {data && data.locali.length === 0 && <p>Nessun locale trovato.</p>}
+      {data && data.locali.length === 0 && <p>Nessun r trovato.</p>}
 
       {data &&
         data.locali.map((locale) => (
