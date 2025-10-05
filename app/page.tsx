@@ -63,11 +63,11 @@ export default function MenuPage() {
     `;
 
     try {
-      const res = await fetch("https://YOUR-HASURA-ENDPOINT/v1/graphql", {
+      const res = await fetch("https://safe-macaque-83.hasura.app/v1/graphql", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-hasura-admin-secret": "YOUR-HASURA-ADMIN-SECRET",
+          "x-hasura-admin-secret": "kr5qRiKc007l1UTGTDthkvoLUinNhnIsNjwj005lIkVECnBjsf2911jX9FK50NHs",
         },
         body: JSON.stringify({
           query,
