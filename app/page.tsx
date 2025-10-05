@@ -1,6 +1,8 @@
+```tsx
 "use client";
 
 import { useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
 
 type MenuItem = {
   uuid: string;
@@ -30,11 +32,16 @@ type Data = {
   locali: Locale[];
 };
 
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PK!);
+
 export default function MenuPage() {
   const [nomeLocale, setNomeLocale] = useState("");
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // stato carrello: { [itemId]: { item, qty } }
+  const [cart, setCart] = useState<Record<string, { item: MenuItem; qty: number }>>({});
 
   const fetchMenu = async () => {
     setLoading(true);
@@ -85,10 +92,44 @@ export default function MenuPage() {
     }
   };
 
+  const addToCart = (item: MenuItem, qty: number) => {
+    if (qty <= 0) return;
+    setCart((prev) => ({
+      ...prev,
+      [item.uuid]: { item, qty: (prev[item.uuid]?.qty || 0) + qty },
+    }));
+  };
+
+  const handleCheckout = async () => {
+    const stripe = await stripePromise;
+    if (!stripe) return;
+
+    const items = Object.values(cart).map(({ item, qty }) => ({
+      id: item.uuid,
+      name: item.nome,
+      price: item.prezzo,
+      quantity: qty,
+    }));
+
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items }),
+    });
+
+    const session = await res.json();
+    await stripe.redirectToCheckout({ sessionId: session.id });
+  };
+
+  const total = Object.values(cart).reduce(
+    (acc, { item, qty }) => acc + item.prezzo * qty,
+    0
+  );
+
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold mb-4">Menu Locale</h1>
-      
+
       <div className="mb-4 flex gap-2">
         <input
           type="text"
@@ -107,7 +148,6 @@ export default function MenuPage() {
 
       {loading && <p>Caricamento...</p>}
       {error && <p className="text-red-500">{error}</p>}
-
       {data && data.locali.length === 0 && <p>Nessun locale trovato.</p>}
 
       {data &&
@@ -121,9 +161,40 @@ export default function MenuPage() {
                     <h3 className="text-xl font-medium mb-1">{sezione.nome}</h3>
                     <ul className="ml-4">
                       {sezione.menu_items.map((item) => (
-                        <li key={item.uuid} className="mb-1">
-                          <strong>{item.nome}</strong> ({item.tipologia}) - €{item.prezzo.toFixed(2)}
-                          <p className="text-gray-700">{item.descrizione}</p>
+                        <li key={item.uuid} className="mb-3">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <strong>{item.nome}</strong> ({item.tipologia}) - €
+                              {item.prezzo.toFixed(2)}
+                              <p className="text-gray-700">{item.descrizione}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min={1}
+                                defaultValue={1}
+                                id={`qty-${item.uuid}`}
+                                className="w-16 border rounded p-1"
+                              />
+                              <button
+                                onClick={() =>
+                                  addToCart(
+                                    item,
+                                    Number(
+                                      (
+                                        document.getElementById(
+                                          `qty-${item.uuid}`
+                                        ) as HTMLInputElement
+                                      )?.value || 1
+                                    )
+                                  )
+                                }
+                                className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                              >
+                                Aggiungi
+                              </button>
+                            </div>
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -133,6 +204,27 @@ export default function MenuPage() {
             ))}
           </div>
         ))}
+
+      {Object.keys(cart).length > 0 && (
+        <div className="border-t pt-4 mt-6">
+          <h2 className="text-2xl font-bold mb-3">Carrello</h2>
+          <ul>
+            {Object.values(cart).map(({ item, qty }) => (
+              <li key={item.uuid}>
+                {item.nome} x {qty} = €{(item.prezzo * qty).toFixed(2)}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 font-semibold">Totale: €{total.toFixed(2)}</p>
+          <button
+            onClick={handleCheckout}
+            className="mt-4 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+          >
+            Procedi al pagamento
+          </button>
+        </div>
+      )}
     </div>
   );
 }
+```
