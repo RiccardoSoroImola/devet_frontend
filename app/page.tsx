@@ -1,3 +1,4 @@
+```tsx
 "use client";
 
 import { useState } from "react";
@@ -35,6 +36,17 @@ export default function MenuPage() {
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Stato quantità piatti
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+  const updateQuantity = (uuid: string, delta: number) => {
+    setQuantities((prev) => {
+      const current = prev[uuid] || 0;
+      const newVal = Math.max(0, current + delta);
+      return { ...prev, [uuid]: newVal };
+    });
+  };
 
   const fetchMenu = async () => {
     setLoading(true);
@@ -86,9 +98,10 @@ export default function MenuPage() {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Menu Locale</h1>
-      
+    <div className="p-4 max-w-md mx-auto bg-white min-h-screen">
+      <h1 className="text-2xl font-bold mb-4 text-center">Menù</h1>
+
+      {/* Barra ricerca */}
       <div className="mb-4 flex gap-2">
         <input
           type="text"
@@ -107,26 +120,62 @@ export default function MenuPage() {
 
       {loading && <p>Caricamento...</p>}
       {error && <p className="text-red-500">{error}</p>}
-
-      {data && data.locali.length === 0 && <p>Nessun r trovato.</p>}
+      {data && data.locali.length === 0 && <p>Nessun locale trovato.</p>}
 
       {data &&
         data.locali.map((locale) => (
-          <div key={locale.nome_locale} className="mb-6">
-            <h2 className="text-2xl font-semibold mb-2">{locale.nome_locale}</h2>
+          <div key={locale.nome_locale}>
+            <h2 className="text-xl font-semibold mb-3">{locale.nome_locale}</h2>
+
             {locale.menu.map((menu) => (
-              <div key={menu.uuid} className="border rounded p-4 mb-4 shadow">
+              <div key={menu.uuid}>
                 {menu.menu_sezioni.map((sezione) => (
-                  <div key={sezione.uuid} className="mb-3">
-                    <h3 className="text-xl font-medium mb-1">{sezione.nome}</h3>
-                    <ul className="ml-4">
+                  <div key={sezione.uuid} className="mb-6">
+                    <h3 className="text-lg font-medium mb-2">{sezione.nome}</h3>
+
+                    <div className="flex flex-col gap-4">
                       {sezione.menu_items.map((item) => (
-                        <li key={item.uuid} className="mb-1">
-                          <strong>{item.nome}</strong> ({item.tipologia}) - €{item.prezzo.toFixed(2)}
-                          <p className="text-gray-700">{item.descrizione}</p>
-                        </li>
+                        <div
+                          key={item.uuid}
+                          className="flex items-center gap-3 border rounded-lg shadow p-2"
+                        >
+                          {/* Immagine placeholder */}
+                          <img
+                            src="https://via.placeholder.com/80"
+                            alt={item.nome}
+                            className="w-20 h-20 object-cover rounded-md"
+                          />
+
+                          {/* Info piatto */}
+                          <div className="flex-1">
+                            <p className="font-semibold">{item.nome}</p>
+                            <p className="text-sm text-gray-600">
+                              {item.descrizione}
+                            </p>
+                            <p className="font-medium mt-1">
+                              €{item.prezzo.toFixed(2)}
+                            </p>
+                          </div>
+
+                          {/* Contatore */}
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => updateQuantity(item.uuid, -1)}
+                              className="w-8 h-8 flex items-center justify-center border rounded-full"
+                            >
+                              -
+                            </button>
+                            <span>{quantities[item.uuid] || 0}</span>
+                            <button
+                              onClick={() => updateQuantity(item.uuid, 1)}
+                              className="w-8 h-8 flex items-center justify-center border rounded-full bg-green-500 text-white"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -136,3 +185,4 @@ export default function MenuPage() {
     </div>
   );
 }
+```
