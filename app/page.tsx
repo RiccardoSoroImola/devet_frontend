@@ -1,12 +1,40 @@
-"use client"; // se sei in app directory, serve per usare useState
+"use client";
 
 import { useState } from "react";
 
+type MenuItem = {
+  uuid: string;
+  nome: string;
+  tipologia: string;
+  descrizione: string;
+  prezzo: number;
+};
+
+type MenuSezione = {
+  uuid: string;
+  nome: string;
+  menu_items: MenuItem[];
+};
+
+type Menu = {
+  uuid: string;
+  menu_sezioni: MenuSezione[];
+};
+
+type Locale = {
+  nome_locale: string;
+  menu: Menu[];
+};
+
+type Data = {
+  locali: Locale[];
+};
+
 export default function MenuPage() {
   const [nomeLocale, setNomeLocale] = useState("");
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchMenu = async () => {
     setLoading(true);
