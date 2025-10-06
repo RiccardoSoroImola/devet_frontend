@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type MenuItem = {
   uuid: string;
@@ -32,6 +33,7 @@ type Data = {
 };
 
 export default function MenuPage() {
+  const router = useRouter();
   const [nomeLocale, setNomeLocale] = useState("");
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
@@ -98,10 +100,47 @@ export default function MenuPage() {
     }
   };
 
-  // Ricava le categorie da tutti gli item
+  // Funzione per calcolare il totale dell'ordine
+  const calculateTotal = () => {
+    if (!data) return 0;
+    
+    let total = 0;
+    data.locali.forEach((locale) =>
+      locale.menu.forEach((menu) =>
+        menu.menu_sezioni.forEach((sezione) =>
+          sezione.menu_items.forEach((item) => {
+            const quantity = quantities[item.uuid] || 0;
+            total += item.prezzo * quantity;
+          })
+        )
+      )
+    );
+    return total;
+  };
+
+  // Ricava le categorie da tutti gli item, considerando solo quelle con elementi visibili
   const getCategories = () => {
     if (!data) return [];
     const categories = new Set<string>();
+    
+    // Se c'è una categoria selezionata, mostra solo quella categoria se contiene elementi
+    if (selectedCategory) {
+      // Verifica se ci sono elementi con questa categoria
+      const hasItems = data.locali.some((locale) =>
+        locale.menu.some((menu) =>
+          menu.menu_sezioni.some((sezione) =>
+            sezione.menu_items.some((item) => item.tipologia === selectedCategory)
+          )
+        )
+      );
+      
+      if (hasItems) {
+        categories.add(selectedCategory);
+      }
+      return Array.from(categories);
+    }
+    
+    // Se non c'è una categoria selezionata, mostra tutte le categorie
     data.locali.forEach((locale) =>
       locale.menu.forEach((menu) =>
         menu.menu_sezioni.forEach((sezione) =>
@@ -112,7 +151,42 @@ export default function MenuPage() {
     return Array.from(categories);
   };
 
+  // Funzione per gestire il checkout e passare alla pagina di riepilogo
+  const handleCheckout = () => {
+    if (!data || calculateTotal() === 0) return;
+    
+    // Raccogli gli elementi ordinati
+    const orderItems = [];
+    data.locali.forEach((locale) =>
+      locale.menu.forEach((menu) =>
+        menu.menu_sezioni.forEach((sezione) =>
+          sezione.menu_items.forEach((item) => {
+            const quantity = quantities[item.uuid] || 0;
+            if (quantity > 0) {
+              orderItems.push({
+                uuid: item.uuid,
+                nome: item.nome,
+                prezzo: item.prezzo,
+                quantita: quantity
+              });
+            }
+          })
+        )
+      )
+    );
+    
+    // Prepara i dati da passare alla pagina di checkout
+    const orderData = {
+      items: orderItems,
+      total: calculateTotal()
+    };
+    
+    // Naviga alla pagina di checkout con i dati dell'ordine
+    router.push(`/checkout?orderData=${encodeURIComponent(JSON.stringify(orderData))}`);
+  };
+
   return (
+    <>
     <div className="p-4 max-w-md mx-auto bg-white min-h-screen">
       <h1 className="text-2xl font-bold mb-4 text-center">Menù</h1>
 
@@ -181,7 +255,7 @@ export default function MenuPage() {
                           >
                             {/* Immagine fissa */}
                             <img
-                              src="https://www.google.com/url?sa=i&url=https%3A%2F%2Fit.vecteezy.com%2Fpng-gratuito%2Fgatto&psig=AOvVaw0RqPzhLy39tVdmCaTKEDfN&ust=1759773624442000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCNC1iOHRjZADFQAAAAAdAAAAABAE"
+                              src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Meet_Truffle%21.jpg/800px-Meet_Truffle%21.jpg"
                               alt={item.nome}
                               className="w-20 h-20 object-cover rounded-md"
                             />
@@ -223,6 +297,26 @@ export default function MenuPage() {
           </div>
         ))}
     </div>
+    
+    {/* Barra del totale fissa in fondo */}
+    {data && (
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4">
+        <div className="max-w-md mx-auto flex justify-between items-center">
+          <span className="font-semibold text-lg">Totale ordine:</span>
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-xl text-green-600">€{calculateTotal().toFixed(2)}</span>
+            <button
+              onClick={handleCheckout}
+              disabled={calculateTotal() === 0}
+              className={`bg-green-500 text-white px-4 py-2 rounded-lg ${calculateTotal() === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'}`}
+            >
+              Ordina
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 
