@@ -2,30 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 🎨 VARIABILI GLOBALI */
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --color-brand-green: #00b37e;
+  --color-brand-dark: #0a0a0a;
+  --color-gray-bg: #f9fafb;
+  --radius-card: 1.25rem;
 }
 
+/* 🌗 THEME OVERRIDE (non serve il dark mode ora, ma lo lasciamo) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --color-brand-green: #00e09a;
+    --color-brand-dark: #f5f5f5;
+    --color-gray-bg: #121212;
   }
 }
 
+/* 🧱 BODY BASE */
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-gray-bg);
+  color: var(--color-brand-dark);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* 📱 SCROLLBAR “MOBILE-LIKE” */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE e Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* ✨ TRANSIZIONI GLOBALI */
+* {
+  transition: all 0.15s ease-in-out;
+}
+
+/* 🔤 TESTI */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  color: var(--color-brand-dark);
+}
+p {
+  line-height: 1.5;
+  color: #4b5563;
+}
+
+/* 🪟 CARD & BUTTON LOOK */
+.card {
+  background: #fff;
+  border-radius: var(--radius-card);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding: 1rem;
+}
+
+.button-primary {
+  background-color: var(--color-brand-green);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.5rem 1.25rem;
+}
+.button-primary:hover {
+  background-color: #00a071;
+}
+
+/* ⚙️ TAILWIND CUSTOM UTILITIES */
 @layer utilities {
   .text-balance {
     text-wrap: balance;

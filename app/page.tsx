@@ -1,7 +1,6 @@
-
 "use client";
-
 import { useState } from "react";
+import Image from "next/image";
 
 type MenuItem = {
   uuid: string;
@@ -9,6 +8,7 @@ type MenuItem = {
   tipologia: string;
   descrizione: string;
   prezzo: number;
+  immagine?: string;
 };
 
 type MenuSezione = {
@@ -36,8 +36,6 @@ export default function MenuPage() {
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Stato quantità piatti
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   const updateQuantity = (uuid: string, delta: number) => {
@@ -81,10 +79,7 @@ export default function MenuPage() {
           "Content-Type": "application/json",
           "x-hasura-admin-secret": "kr5qRiKc007l1UTGTDthkvoLUinNhnIsNjwj005lIkVECnBjsf2911jX9FK50NHs",
         },
-        body: JSON.stringify({
-          query,
-          variables: { nomeLocale },
-        }),
+        body: JSON.stringify({ query, variables: { nomeLocale } }),
       });
 
       const json = await res.json();
@@ -97,92 +92,135 @@ export default function MenuPage() {
     }
   };
 
+  // --- UI ---
   return (
-    <div className="p-4 max-w-md mx-auto bg-white min-h-screen">
-      <h1 className="text-2xl font-bold mb-4 text-center">Menù</h1>
+  <main className="min-h-screen bg-gray-50 pb-24 font-[Inter]">
+    {/* HEADER */}
+    <header className="sticky top-0 bg-white shadow-sm p-4 z-20 flex justify-between items-center">
+      <button
+        onClick={() => setData(null)}
+        className="text-gray-600 text-lg font-medium"
+      >
+        ←
+      </button>
+      <h1 className="text-lg font-semibold">Menù</h1>
+      <div className="w-5" />
+    </header>
 
-      {/* Barra ricerca */}
-      <div className="mb-4 flex gap-2">
-        <input
-          type="text"
-          placeholder="Inserisci nome locale"
-          value={nomeLocale}
-          onChange={(e) => setNomeLocale(e.target.value)}
-          className="border p-2 flex-1 rounded"
-        />
-        <button
-          onClick={fetchMenu}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Cerca
-        </button>
+    {/* SEARCH BAR */}
+<div className="px-4 mt-4">
+  <form
+    onSubmit={(e) => {
+      e.preventDefault();
+      fetchMenu();
+    }}
+    className="flex gap-2"
+  >
+    <input
+      type="text"
+      placeholder="Inserisci nome locale"
+      value={nomeLocale}
+      onChange={(e) => setNomeLocale(e.target.value)}
+      className="w-full rounded-2xl border border-gray-200 py-3 px-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400"
+    />
+  </form>
+</div>
+
+
+    {/* CATEGORY CAROUSEL */}
+    {data && data.locali[0]?.menu[0]?.menu_sezioni && (
+      <div className="flex overflow-x-auto gap-5 px-4 py-5 no-scrollbar">
+        {data.locali[0].menu[0].menu_sezioni.map((sezione) => (
+          <button
+            key={sezione.uuid}
+            className="flex flex-col items-center justify-center shrink-0"
+          >
+            <div className="w-16 h-16 bg-green-100 flex items-center justify-center rounded-full mb-1">
+              🍽️
+            </div>
+            <span className="text-xs font-medium text-gray-700">
+              {sezione.nome}
+            </span>
+          </button>
+        ))}
       </div>
+    )}
 
-      {loading && <p>Caricamento...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      {data && data.locali.length === 0 && <p>Nessun locale trovato.</p>}
+    {/* MENU SECTIONS */}
+    {data &&
+      data.locali.map((locale) => (
+        <div key={locale.nome_locale}>
+          {locale.menu[0]?.menu_sezioni.map((sezione) => (
+            <section key={sezione.uuid} className="px-4 mb-10">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {sezione.nome}
+                </h2>
+                <button className="text-sm text-green-600 font-medium">
+                  Filtri
+                </button>
+              </div>
 
-      {data &&
-        data.locali.map((locale) => (
-          <div key={locale.nome_locale}>
-            <h2 className="text-xl font-semibold mb-3">{locale.nome_locale}</h2>
+              <div className="flex flex-col gap-4">
+                {sezione.menu_items.map((item) => (
+                  <div
+                    key={item.uuid}
+                    className="flex gap-3 bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition"
+                  >
+                    {/* IMG */}
+                    <div className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+                      <img
+                        src={
+                          item.immagine ||
+                          "https://placehold.co/100x100?text=IMG"
+                        }
+                        alt={item.nome}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
 
-            {locale.menu.map((menu) => (
-              <div key={menu.uuid}>
-                {menu.menu_sezioni.map((sezione) => (
-                  <div key={sezione.uuid} className="mb-6">
-                    <h3 className="text-lg font-medium mb-2">{sezione.nome}</h3>
+                    {/* TEXT + PRICE + BUTTONS */}
+                    <div className="flex flex-col justify-between flex-1">
+                      <div>
+                        <h3 className="font-medium text-gray-900 text-sm">
+                          {item.nome}
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          {item.descrizione}
+                        </p>
+                      </div>
 
-                    <div className="flex flex-col gap-4">
-                      {sezione.menu_items.map((item) => (
-                        <div
-                          key={item.uuid}
-                          className="flex items-center gap-3 border rounded-lg shadow p-2"
-                        >
-                          {/* Immagine placeholder */}
-                          <img
-                            src="https://via.placeholder.com/80"
-                            alt={item.nome}
-                            className="w-20 h-20 object-cover rounded-md"
-                          />
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-sm font-semibold text-gray-900">
+                          € {item.prezzo.toFixed(2)}
+                        </span>
 
-                          {/* Info piatto */}
-                          <div className="flex-1">
-                            <p className="font-semibold">{item.nome}</p>
-                            <p className="text-sm text-gray-600">
-                              {item.descrizione}
-                            </p>
-                            <p className="font-medium mt-1">
-                              €{item.prezzo.toFixed(2)}
-                            </p>
-                          </div>
-
-                          {/* Contatore */}
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => updateQuantity(item.uuid, -1)}
-                              className="w-8 h-8 flex items-center justify-center border rounded-full"
-                            >
-                              -
-                            </button>
-                            <span>{quantities[item.uuid] || 0}</span>
-                            <button
-                              onClick={() => updateQuantity(item.uuid, 1)}
-                              className="w-8 h-8 flex items-center justify-center border rounded-full bg-green-500 text-white"
-                            >
-                              +
-                            </button>
-                          </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateQuantity(item.uuid, -1)}
+                            className="w-7 h-7 flex items-center justify-center bg-gray-200 text-gray-700 rounded-full font-bold"
+                          >
+                            −
+                          </button>
+                          <span className="text-sm w-4 text-center text-gray-800">
+                            {quantities[item.uuid] || 0}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(item.uuid, +1)}
+                            className="w-7 h-7 flex items-center justify-center bg-green-500 text-white rounded-full font-bold"
+                          >
+                            +
+                          </button>
                         </div>
-                      ))}
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-            ))}
-          </div>
-        ))}
-    </div>
-  );
+            </section>
+          ))}
+        </div>
+      ))}
+  </main>
+);
 }
-
