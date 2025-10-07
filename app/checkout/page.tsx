@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type OrderItem = {
   uuid: string;
@@ -12,25 +12,26 @@ type OrderItem = {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    // Recupera i dati dell'ordine dai parametri URL
-    const orderData = searchParams.get("orderData");
-    if (orderData) {
+    // Recupera i dati dell'ordine da localStorage
+    const orderDataString = localStorage.getItem('orderData');
+    if (orderDataString) {
       try {
-        const parsedData = JSON.parse(decodeURIComponent(orderData));
+        const parsedData = JSON.parse(orderDataString);
         setOrderItems(parsedData.items);
         setTotalAmount(parsedData.total);
+        // Pulisci i dati dopo averli caricati
+        localStorage.removeItem('orderData');
       } catch (error) {
         console.error("Errore nel parsing dei dati dell'ordine:", error);
       }
     }
-  }, [searchParams]);
+  }, []);
 
   const handlePayment = async () => {
     setIsLoading(true);
