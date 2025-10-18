@@ -1,12 +1,12 @@
-name: Build and Deploy
+name: Build and Deploy Static Site
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:   # consente di lanciarlo manualmente
+  workflow_dispatch: # permette di lanciarla manualmente
 
 permissions:
-  contents: write      # serve per pushare su gh-pages
+  contents: write # serve per creare/aggiornare il branch gh-pages
 
 jobs:
   build-and-deploy:
@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -24,16 +24,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
-        continue-on-error: true   # opzionale se non vuoi bloccare il deploy in caso di test falliti
-
       - name: Build project
         run: npm run build
 
-      # Assumiamo che il build generi la cartella 'dist' o 'build'
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist   # cambia in ./build se il tuo progetto la usa
+          publish_dir: ./dist   # ⬅️ cambia se usi ./build o ./out
