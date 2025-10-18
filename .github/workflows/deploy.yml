@@ -31,4 +31,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist   # ⬅️ cambia se usi ./build o ./out
+          publish_dir: ./out   # Next.js static export output directory
