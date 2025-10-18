@@ -25,11 +25,11 @@ You need to add your Hasura credentials as GitHub Secrets:
 
    **Secret 1: NEXT_PUBLIC_HASURA_URL**
    - Name: `NEXT_PUBLIC_HASURA_URL`
-   - Value: `https://safe-macaque-83.hasura.app/v1/graphql` (or your Hasura endpoint)
+   - Value: Your Hasura GraphQL endpoint (e.g., `https://your-project.hasura.app/v1/graphql`)
 
    **Secret 2: NEXT_PUBLIC_HASURA_ADMIN_SECRET**
    - Name: `NEXT_PUBLIC_HASURA_ADMIN_SECRET`
-   - Value: Your actual Hasura admin secret (the one currently hardcoded in the old code)
+   - Value: Your Hasura admin secret
 
 ### 2. Enable GitHub Pages
 
@@ -48,7 +48,7 @@ To allow API calls from your GitHub Pages site:
 2. Navigate to your project settings
 3. Find **Allowed Origins** or **CORS Settings**
 4. Add these origins:
-   - `https://riccardosoroimola.github.io`
+   - `https://<your-username>.github.io` (replace with your GitHub username)
    - `http://localhost:3000` (for local development)
 5. Save the changes
 
@@ -71,7 +71,7 @@ Alternatively, you can manually trigger the workflow:
 
 After deployment completes:
 
-1. Visit: `https://riccardosoroimola.github.io/devet_frontend/`
+1. Visit: `https://<your-username>.github.io/devet_frontend/` (replace with your GitHub username)
 2. Open browser DevTools (F12) → Network tab
 3. Test the menu functionality to ensure:
    - All assets load correctly (no 404s for `_next/static/*`)
@@ -89,7 +89,7 @@ To test the configuration locally before deploying:
 
 2. Edit `.env.local` and add your Hasura credentials:
    ```
-   NEXT_PUBLIC_HASURA_URL=https://safe-macaque-83.hasura.app/v1/graphql
+   NEXT_PUBLIC_HASURA_URL=https://your-project.hasura.app/v1/graphql
    NEXT_PUBLIC_HASURA_ADMIN_SECRET=your-actual-secret-here
    ```
 

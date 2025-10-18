@@ -3,10 +3,10 @@ name: Build and Deploy Static Site
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # permette di lanciarla manualmente
+  workflow_dispatch: # allows manual workflow trigger
 
 permissions:
-  contents: write # serve per creare/aggiornare il branch gh-pages
+  contents: write # required to create/update the gh-pages branch
 
 jobs:
   build-and-deploy:
