@@ -49,7 +49,7 @@ export default function SearchBar({
           onKeyPress={handleKeyPress}
         />
         <button
-          onClick={onSearch}
+          onClick={() => onSearch()}
           className={styles.searchButton}
           disabled={loading}
         >
