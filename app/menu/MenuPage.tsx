@@ -58,7 +58,7 @@ function MenuContent() {
   };
 
   // Funzione per caricare il menu di un ristorante
-  const fetchMenu = async (restaurantName?: string) => {
+  const fetchMenu = async (restaurantName?: string, fromUrl: boolean = false) => {
     const nameToFetch = restaurantName || nomeLocale;
     if (!nameToFetch) return;
 
@@ -108,8 +108,10 @@ function MenuContent() {
       if (json.data && json.data.locali && json.data.locali.length > 0) {
         setData(json.data);
         setNomeLocale(nameToFetch);
-        // Salva l'ID del ristorante nell'URL quando viene caricato con successo
-        saveId(nameToFetch);
+        // Salva l'ID del ristorante nell'URL solo se non è già presente (non caricato da URL)
+        if (!fromUrl) {
+          saveId(nameToFetch);
+        }
       } else {
         // Nessun locale trovato con questo ID
         setError("Ristorante non trovato. Verifica il nome e riprova.");
@@ -129,7 +131,8 @@ function MenuContent() {
     const restaurantId = readId();
     if (restaurantId) {
       // Se c'è un restaurantId nell'URL, carica direttamente il ristorante
-      fetchMenu(restaurantId);
+      // Passa fromUrl=true per evitare di salvare nuovamente l'ID nell'URL
+      fetchMenu(restaurantId, true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Esegui solo al mount del componente
