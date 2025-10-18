@@ -25,6 +25,9 @@ jobs:
         run: npm ci
 
       - name: Build project
+        env:
+          NEXT_PUBLIC_HASURA_URL: ${{ secrets.NEXT_PUBLIC_HASURA_URL }}
+          NEXT_PUBLIC_HASURA_ADMIN_SECRET: ${{ secrets.NEXT_PUBLIC_HASURA_ADMIN_SECRET }}
         run: npm run build
 
       - name: Deploy to GitHub Pages

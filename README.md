@@ -1,91 +1,161 @@
-![Build Status](https://gitlab.com/pages/<project>/badges/master/build.svg)
+# Devet Frontend
+
+Next.js application for Devet deployed on GitHub Pages.
 
 ---
 
-Example [Next.js](https://nextjs.org) website using GitLab Pages.
+## Table of Contents
 
-Learn more about GitLab Pages at https://pages.gitlab.io and the official
-documentation https://docs.gitlab.com/ce/user/project/pages/.
-
----
-
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [GitLab CI](#gitlab-ci)
-- [Building locally](#building-locally)
-- [Add base path in Next.js when unique domain is disabled](#add-base-path-in-nextjs-when-unique-domain-is-disabled)
-- [GitLab User or Group Pages](#gitlab-user-or-group-pages)
-- [Did you fork this project?](#did-you-fork-this-project)
+- [Building Locally](#building-locally)
+- [Environment Variables](#environment-variables)
+- [Deploying to GitHub Pages](#deploying-to-github-pages)
+- [Configuration](#configuration)
 - [Troubleshooting](#troubleshooting)
 
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+---
 
-## GitLab CI
+## Building Locally
 
-This project's static Pages are built by [GitLab CI][ci], following the steps
-defined in [`.gitlab-ci.yml`](.gitlab-ci.yml):
+To work locally with this project:
 
-contents of .gitlab-ci.yml in codeblock
-
-## Building locally
-
-To work locally with this project, you'll have to follow the steps below:
-
-1. Fork, clone or download this project
-1. Install dependencies: `npm install`
-1. Preview your project: `npm run dev`
-1. Add content
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env.local` file from the example:
+   ```bash
+   cp .env.example .env.local
+   ```
+4. Edit `.env.local` and add your Hasura credentials
+5. Run the development server:
+   ```bash
+   npm run dev
+   ```
+6. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 Read more at the Next.js [documentation](https://nextjs.org/docs).
 
-## Add base path in Next.js when unique domain is disabled
+## Environment Variables
 
-If you [disable the unique domain](https://docs.gitlab.com/user/project/pages/#unique-domains),
-the site will be hosted under `yourname.gitlab.io/examplerepository/`,
-you will need to configure Next.js to use the `basePath`.
+This application requires the following environment variables:
 
-In `next.config.mjs`, the value for `basePath` should be your project’s name,
-starting with a forward slash - for example, `/examplerepository`.
-This ensures Next.js understands that your website’s root is `/examplerepository` instead of the default `/`,
-especially when your project is hosted at `https://gitlab.com/yourname/examplerepository/`.
+- **NEXT_PUBLIC_HASURA_URL**: Your Hasura GraphQL endpoint URL
+  - Example: `https://your-project.hasura.app/v1/graphql`
+  
+- **NEXT_PUBLIC_HASURA_ADMIN_SECRET**: Your Hasura admin secret
+  - **Important**: Never commit this value to the repository
+  - For local development, set it in `.env.local`
+  - For GitHub Pages deployment, set it as a GitHub Secret
 
-```js:title=next.config.mjs
-const nextConfig = {
-  basePath: '/examplerepository',
-};
-export default nextConfig;
+### Setting up Environment Variables
+
+#### Local Development
+
+1. Copy `.env.example` to `.env.local`:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. Edit `.env.local` and replace the placeholder values with your actual Hasura credentials
+
+#### GitHub Pages Deployment
+
+To deploy on GitHub Pages with proper Hasura configuration:
+
+1. Go to your GitHub repository → Settings → Secrets and variables → Actions
+2. Add the following secrets:
+   - `NEXT_PUBLIC_HASURA_URL`: Your Hasura GraphQL endpoint
+   - `NEXT_PUBLIC_HASURA_ADMIN_SECRET`: Your Hasura admin secret
+
+## Deploying to GitHub Pages
+
+This project is configured to deploy automatically to GitHub Pages using GitHub Actions.
+
+### Automatic Deployment
+
+The deployment happens automatically when you push to the `main` branch. The workflow:
+
+1. Checks out the code
+2. Sets up Node.js
+3. Installs dependencies
+4. Builds the project with environment variables from GitHub Secrets
+5. Deploys the `out/` folder to the `gh-pages` branch
+
+### Manual Deployment
+
+You can also trigger a manual deployment:
+
+1. Go to Actions tab in your GitHub repository
+2. Select the "Build and Deploy Static Site" workflow
+3. Click "Run workflow"
+
+### Verify Deployment
+
+After deployment, your site will be available at:
+```
+https://<username>.github.io/devet_frontend/
 ```
 
-## GitLab User or Group Pages
+The site is configured with:
+- `basePath: '/devet_frontend'` - ensures correct routing
+- `assetPrefix: '/devet_frontend/'` - ensures assets load from correct path
 
-To use this project as your user/group website, you will need one additional
-step: just rename your project to `namespace.gitlab.io`, where `namespace` is
-your `username` or `groupname`. This can be done by navigating to your
-project's **Settings**.
+## Configuration
 
-Read more about [user/group Pages][userpages] and [project Pages][projpages].
+The project is configured for GitHub Pages deployment in `next.config.js`:
 
-## Did you fork this project?
+```javascript
+const nextConfig = {
+  output: 'export',                    // Enable static export
+  basePath: '/devet_frontend',         // Base path for GitHub Project Pages
+  assetPrefix: '/devet_frontend/',     // Asset prefix for correct loading
+  images: {
+    unoptimized: true,                 // Required for static export
+  },
+};
+```
 
-If you forked this project for your own use, please go to your project's
-**Settings** and remove the forking relationship, which won't be necessary
-unless you want to contribute back to the upstream project.
+### Why basePath and assetPrefix?
+
+GitHub Pages hosts project pages at `https://username.github.io/repository-name/`, not at the root. The `basePath` and `assetPrefix` settings ensure:
+
+- All internal links work correctly (e.g., `/checkout` becomes `/devet_frontend/checkout`)
+- All assets (_next/static/*) are loaded from the correct path
+- The application routes work properly without 404 errors
 
 ## Troubleshooting
 
-1. CSS is missing! That means two things:
+### Assets not loading (404 errors)
 
-   Either that you have wrongly set up the CSS URL in your templates, or
-   your static generator has a configuration option that needs to be explicitly
-   set in order to serve static assets under a relative URL.
+If you see 404 errors for `_next/static/*` files:
 
-[ci]: https://about.gitlab.com/gitlab-ci/
-[<project>]: http://link-to-project-main-page
-[install]: http://link-to-install-page
-[documentation]: http://link-to-main-documentation-page
-[userpages]: https://docs.gitlab.com/ce/user/project/pages/introduction.html#user-or-group-pages
-[projpages]: https://docs.gitlab.com/ce/user/project/pages/introduction.html#project-pages
+1. Verify that `basePath` and `assetPrefix` are correctly set in `next.config.js`
+2. Ensure the site is deployed to the `gh-pages` branch
+3. Check that GitHub Pages is enabled in your repository settings and pointing to the `gh-pages` branch
 
-----
+### Hasura API calls failing
+
+If GraphQL queries are failing:
+
+1. Verify environment variables are set correctly in GitHub Secrets
+2. Check that the Hasura endpoint URL is accessible from the browser
+3. Verify CORS settings in your Hasura Cloud console allow requests from your GitHub Pages domain
+4. Ensure the admin secret is correct and not expired
+
+### CORS errors
+
+If you see CORS errors in the browser console:
+
+1. Go to your Hasura Cloud console
+2. Navigate to Settings → Allowed Origins
+3. Add your GitHub Pages URL: `https://<username>.github.io`
+4. Save the changes
+
+### Build failing in GitHub Actions
+
+1. Check that all required secrets are set in GitHub repository settings
+2. Verify the workflow file syntax is correct
+3. Check the Actions logs for specific error messages
+
+---
