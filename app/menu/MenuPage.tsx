@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import Header from "../components/Header";
+import SearchBar from "../components/SearchBar";
+import CategoryCarousel from "../components/CategoryCarousel";
+import ProductCard from "../components/ProductCard";
+import BottomNav from "../components/BottomNav";
 
 type MenuItem = {
   uuid: string;
@@ -177,96 +181,70 @@ function MenuContent() {
 
   return (
     <>
-      <div className="p-4 max-w-md mx-auto bg-white min-h-screen">
-        <h1 className="text-2xl font-bold mb-4 text-center">Menù</h1>
+      <Header title="Menù" showBackButton={false} />
 
+      <div className="pb-32" style={{ backgroundColor: 'var(--color-gray-50)', minHeight: '100vh' }}>
         {/* Barra ricerca */}
-        <div className="mb-4 flex gap-2">
-          <input
-            type="text"
-            placeholder="Inserisci nome locale"
+        <div className="pt-4 pb-2">
+          <SearchBar
             value={nomeLocale}
-            onChange={(e) => setNomeLocale(e.target.value)}
-            className="border p-2 flex-1 rounded"
+            onChange={setNomeLocale}
+            onSearch={fetchMenu}
+            placeholder="Inserisci nome locale"
+            loading={loading}
           />
-          <button
-            onClick={fetchMenu}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Cerca
-          </button>
         </div>
 
-        {loading && <p>Caricamento...</p>}
-        {error && <p className="text-red-500">{error}</p>}
-        {data && data.locali.length === 0 && <p>Nessun locale trovato.</p>}
+        {loading && (
+          <div className="text-center py-8">
+            <p className="text-gray-600">Caricamento...</p>
+          </div>
+        )}
+        {error && (
+          <div className="text-center py-8">
+            <p className="text-red-500">{error}</p>
+          </div>
+        )}
+        {data && data.locali.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-600">Nessun locale trovato.</p>
+          </div>
+        )}
 
         {/* Categorie */}
-        {data && (
-          <div className="flex gap-3 overflow-x-auto mb-4">
-            {getCategories().map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat === selectedCategory ? null : cat)}
-                className={`flex flex-col items-center px-4 py-2 rounded-full border ${
-                  selectedCategory === cat
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white text-gray-700"
-                }`}
-              >
-                <span className="text-sm">{cat}</span>
-              </button>
-            ))}
-          </div>
+        {data && getCategories().length > 0 && (
+          <CategoryCarousel
+            categories={getCategories()}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
         )}
 
         {/* Lista piatti */}
         {data &&
           data.locali.map((locale) => (
-            <div key={locale.nome_locale}>
-              <h2 className="text-xl font-semibold mb-3">{locale.nome_locale}</h2>
+            <div key={locale.nome_locale} className="px-4">
+              <h2 className="text-xl font-bold mb-4 text-gray-900">{locale.nome_locale}</h2>
 
               {locale.menu.map((menu) => (
                 <div key={menu.uuid}>
                   {menu.menu_sezioni.map((sezione) => (
                     <div key={sezione.uuid} className="mb-6">
-                      <h3 className="text-lg font-medium mb-2">{sezione.nome}</h3>
+                      <h3 className="text-lg font-semibold mb-3 text-gray-800">{sezione.nome}</h3>
 
-                      <div className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-3">
                         {sezione.menu_items
                           .filter((item) => !selectedCategory || item.tipologia === selectedCategory)
                           .map((item) => (
-                            <div key={item.uuid} className="flex items-center gap-3 border rounded-lg shadow p-2">
-                              <Image
-                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Meet_Truffle%21.jpg/800px-Meet_Truffle%21.jpg"
-                                alt={item.nome}
-                                width={80}
-                                height={80}
-                                className="object-cover rounded-md"
-                              />
-
-                              <div className="flex-1">
-                                <p className="font-semibold">{item.nome}</p>
-                                <p className="text-sm text-gray-600">{item.descrizione}</p>
-                                <p className="font-medium mt-1">€{item.prezzo.toFixed(2)}</p>
-                              </div>
-
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => updateQuantity(item.uuid, -1)}
-                                  className="w-8 h-8 flex items-center justify-center border rounded-full"
-                                >
-                                  -
-                                </button>
-                                <span>{quantities[item.uuid] || 0}</span>
-                                <button
-                                  onClick={() => updateQuantity(item.uuid, 1)}
-                                  className="w-8 h-8 flex items-center justify-center border rounded-full bg-green-500 text-white"
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
+                            <ProductCard
+                              key={item.uuid}
+                              uuid={item.uuid}
+                              nome={item.nome}
+                              descrizione={item.descrizione}
+                              prezzo={item.prezzo}
+                              quantity={quantities[item.uuid] || 0}
+                              onUpdateQuantity={updateQuantity}
+                            />
                           ))}
                       </div>
                     </div>
@@ -278,18 +256,36 @@ function MenuContent() {
       </div>
 
       {/* Barra totale fissa */}
-      {data && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4">
+      {data && calculateTotal() > 0 && (
+        <div 
+          className="fixed left-0 right-0 bg-white border-t shadow-lg p-4"
+          style={{ 
+            bottom: '4rem',
+            boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)',
+            zIndex: 30
+          }}
+        >
           <div className="max-w-md mx-auto flex justify-between items-center">
-            <span className="font-semibold text-lg">Totale ordine:</span>
+            <span className="font-semibold text-lg text-gray-900">Totale:</span>
             <div className="flex items-center gap-3">
-              <span className="font-bold text-xl text-green-600">€{calculateTotal().toFixed(2)}</span>
+              <span className="font-bold text-xl" style={{ color: 'var(--color-secondary)' }}>
+                €{calculateTotal().toFixed(2)}
+              </span>
               <button
                 onClick={handleCheckout}
                 disabled={calculateTotal() === 0}
-                className={`bg-green-500 text-white px-4 py-2 rounded-lg ${
-                  calculateTotal() === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-green-600"
-                }`}
+                style={{
+                  backgroundColor: 'var(--color-secondary)',
+                  padding: '0.5rem 1.5rem',
+                  borderRadius: 'var(--radius-lg)',
+                  color: 'white',
+                  fontWeight: '600',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--color-secondary-hover)'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--color-secondary)'}
               >
                 Ordina
               </button>
@@ -297,6 +293,8 @@ function MenuContent() {
           </div>
         </div>
       )}
+
+      <BottomNav activeTab="menu" />
     </>
   );
 }

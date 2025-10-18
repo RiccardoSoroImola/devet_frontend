@@ -1,0 +1,76 @@
+.categoryCarousel {
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.categoryList {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.categoryList::-webkit-scrollbar {
+  display: none;
+}
+
+.categoryItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s;
+}
+
+.categoryItem:hover {
+  transform: scale(1.05);
+}
+
+.categoryIcon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-gray-200);
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+.categoryItem.active .categoryIcon {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.categoryIconEmoji {
+  font-size: 1.75rem;
+}
+
+.categoryName {
+  font-size: 0.75rem;
+  color: var(--color-gray-700);
+  text-align: center;
+  font-weight: 500;
+  max-width: 5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categoryItem.active .categoryName {
+  color: var(--color-primary);
+  font-weight: 600;
+}
