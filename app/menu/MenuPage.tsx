@@ -57,7 +57,11 @@ function MenuContent() {
     });
   };
 
-  // Funzione per caricare il menu di un ristorante
+  /**
+   * Funzione per caricare il menu di un ristorante
+   * @param restaurantName - Nome del ristorante da cercare (opzionale, usa nomeLocale se non specificato)
+   * @param fromUrl - Se true, indica che il ristorante viene caricato dall'URL e previene il salvataggio duplicato dell'ID nell'URL
+   */
   const fetchMenu = async (restaurantName?: string, fromUrl: boolean = false) => {
     const nameToFetch = restaurantName || nomeLocale;
     if (!nameToFetch) return;
