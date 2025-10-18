@@ -3,10 +3,10 @@ name: Build and Deploy Static Site
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # permette di lanciarla manualmente
+  workflow_dispatch: # allows manual workflow trigger
 
 permissions:
-  contents: write # serve per creare/aggiornare il branch gh-pages
+  contents: write # required to create/update the gh-pages branch
 
 jobs:
   build-and-deploy:
@@ -25,6 +25,9 @@ jobs:
         run: npm ci
 
       - name: Build project
+        env:
+          NEXT_PUBLIC_HASURA_URL: ${{ secrets.NEXT_PUBLIC_HASURA_URL }}
+          NEXT_PUBLIC_HASURA_ADMIN_SECRET: ${{ secrets.NEXT_PUBLIC_HASURA_ADMIN_SECRET }}
         run: npm run build
 
       - name: Deploy to GitHub Pages

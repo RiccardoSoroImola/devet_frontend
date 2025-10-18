@@ -77,11 +77,14 @@ function MenuContent() {
     `;
 
     try {
-      const res = await fetch("https://safe-macaque-83.hasura.app/v1/graphql", {
+      const hasuraUrl = process.env.NEXT_PUBLIC_HASURA_URL || "https://safe-macaque-83.hasura.app/v1/graphql";
+      const hasuraSecret = process.env.NEXT_PUBLIC_HASURA_ADMIN_SECRET || "";
+      
+      const res = await fetch(hasuraUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-hasura-admin-secret": "kr5qRiKc007l1UTGTDthkvoLUinNhnIsNjwj005lIkVECnBjsf2911jX9FK50NHs",
+          ...(hasuraSecret && { "x-hasura-admin-secret": hasuraSecret }),
         },
         body: JSON.stringify({
           query,
