@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
+import { useRestaurantUrl } from "../hooks/useRestaurantUrl";
 import Header from "../components/Header";
 import SearchBar from "../components/SearchBar";
 import CategoryCarousel from "../components/CategoryCarousel";
@@ -30,6 +31,7 @@ type Menu = {
 type Locale = {
   nome_locale: string;
   menu: Menu[];
+  uuid?: string; // Optional: se il database ha un campo UUID per i locali
 };
 
 type Data = {
@@ -38,6 +40,7 @@ type Data = {
 
 function MenuContent() {
   const router = useRouter();
+  const { readId, saveId } = useRestaurantUrl();
   const [nomeLocale, setNomeLocale] = useState("");
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
@@ -54,7 +57,11 @@ function MenuContent() {
     });
   };
 
-  const fetchMenu = async () => {
+  // Funzione per caricare il menu di un ristorante
+  const fetchMenu = async (restaurantName?: string) => {
+    const nameToFetch = restaurantName || nomeLocale;
+    if (!nameToFetch) return;
+
     setLoading(true);
     setError(null);
 
@@ -92,19 +99,40 @@ function MenuContent() {
         },
         body: JSON.stringify({
           query,
-          variables: { nomeLocale },
+          variables: { nomeLocale: nameToFetch },
         }),
       });
 
       const json = await res.json();
-      setData(json.data);
+      
+      if (json.data && json.data.locali && json.data.locali.length > 0) {
+        setData(json.data);
+        setNomeLocale(nameToFetch);
+        // Salva l'ID del ristorante nell'URL quando viene caricato con successo
+        saveId(nameToFetch);
+      } else {
+        // Nessun locale trovato con questo ID
+        setError("Ristorante non trovato. Verifica il nome e riprova.");
+        setData(null);
+      }
     } catch (err) {
       console.error(err);
-      setError("Errore durante il fetch");
+      setError("Errore durante il caricamento del menu");
     } finally {
       setLoading(false);
     }
   };
+
+  // Effetto per caricare automaticamente il ristorante dall'URL all'avvio
+  // Questo permette di condividere l'URL con l'ID del ristorante già presente
+  useEffect(() => {
+    const restaurantId = readId();
+    if (restaurantId) {
+      // Se c'è un restaurantId nell'URL, carica direttamente il ristorante
+      fetchMenu(restaurantId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Esegui solo al mount del componente
 
   const calculateTotal = () => {
     if (!data) return 0;
@@ -300,5 +328,13 @@ function MenuContent() {
 }
 
 export default function MenuPage() {
-  return <MenuContent />;
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-gray-600">Caricamento...</p>
+      </div>
+    }>
+      <MenuContent />
+    </Suspense>
+  );
 }
