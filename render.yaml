@@ -1,12 +1,12 @@
 services:
-  - type: static
+  - type: web
+    runtime: static
     name: devet-frontend
     repo: https://github.com/RiccardoSoroImola/devet_frontend
     branch: main
-    # Esegui il build dal root del repo (workspace) e poi esegui gli script del pacchetto apps/web
+    # Esegui l'installazione dalla root del repo e poi esegui gli script del pacchetto apps/web
     root: .
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter ./apps/web... run build && pnpm --filter ./apps/web... run export
-    # Percorso relativo alla root dove next export scrive i file statici
     staticPublishPath: apps/web/out
     autoDeploy: true
     plan: free
@@ -19,10 +19,10 @@ services:
     repo: https://github.com/RiccardoSoroImola/devet_frontend
     branch: main
     env: node
-    # Costruiamo dal root del repo e poi eseguiamo lo start del pacchetto apps/api
     root: .
+    # Installa le dipendenze dal root e costruisci il pacchetto apps/api
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter ./apps/api... run build
-    # Start va eseguto con il comando definito in apps/api package.json
+    # Start esegue lo script start definito in apps/api/package.json
     startCommand: pnpm --filter ./apps/api... run start
     healthCheckPath: /health
     autoDeploy: true
@@ -32,12 +32,11 @@ services:
         value: production
 
 # NOTE:
-# - Questo file assume che:
-#   - apps/web contenga un'app Next.js che supporta `next build` + `next export` (export in apps/web/out).
-#   - apps/api sia il backend Node/TypeScript (o JS) con script di build/start in apps/api/package.json.
-# - I comandi pnpm usati sono workspace-aware:
-#   - pnpm install --frozen-lockfile installa le dipendenze nella workspace (root).
-#   - pnpm --filter ./apps/web... run build esegue lo script build del pacchetto apps/web.
-# - Non inserire segreti sensibili in questo file; aggiungi DATABASE_URL, JWT_SECRET ecc. nel pannello Environment/Secrets su Render.
+# - Questo file assume:
+#   - apps/web è una Next.js app che supporta `next build` + `next export` (l'output è apps/web/out).
+#   - apps/api è il backend con script build/start in apps/api/package.json.
+# - Le buildCommand/startCommand vengono eseguite nella directory 'root' (qui la root del repo),
+#   perciò usiamo comandi pnpm workspace-aware per assicurare installazione e build corrette.
+# - Non mettere segreti sensibili qui; configura DATABASE_URL, JWT_SECRET, ecc. nel pannello Environment di Render.
 # - Assicurati che il backend usi process.env.PORT per l'ascolto (es. const port = process.env.PORT || 3000).
-# - Se apps/web non può essere esportata staticamente (usa getServerSideProps), allora devi deployare il frontend come Web Service (Next.js server) invece che Static Site.
+# - Se apps/web non può essere esportata staticamente (usa getServerSideProps), dovremo cambiare il frontend in type: web senza runtime: static e usare startCommand per eseguire next start.
