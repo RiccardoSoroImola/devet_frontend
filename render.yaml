@@ -1,0 +1,18 @@
+services:
+  - type: static
+    name: devet-frontend
+    repo: https://github.com/RiccardoSoroImola/devet_frontend
+    branch: main
+    root: .
+    buildCommand: npm ci && npm run build && npm run export
+    staticPublishPath: out
+    autoDeploy: true
+    plan: free
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: "https://your-backend.onrender.com"
+
+# Notes:
+# - This config assumes the project is a Next.js app using `next build` and `next export` to produce a static site in the `out/` folder.
+# - Do NOT store sensitive secrets here; add DATABASE_URL, JWT_SECRET, or other secrets in the Render dashboard environment variables instead.
+# - Ensure package.json includes scripts: "build": "next build", "export": "next export". If your export uses a different output directory, update staticPublishPath accordingly.
