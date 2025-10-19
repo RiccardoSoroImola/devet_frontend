@@ -4,10 +4,10 @@ services:
     name: devet-frontend
     repo: https://github.com/RiccardoSoroImola/devet_frontend
     branch: main
-    # Esegui l'installazione dalla root del repo e poi esegui gli script del pacchetto apps/web
-    root: .
-    buildCommand: pnpm install --frozen-lockfile && pnpm --filter ./apps/web... run build && pnpm --filter ./apps/web... run export
-    staticPublishPath: apps/web/out
+    rootDir: apps/web
+    # Esegui l'installazione nella workspace root e poi build/export del package apps/web
+    buildCommand: pnpm install --frozen-lockfile --workspace-root && pnpm --filter ./apps/web... run build && pnpm --filter ./apps/web... run export
+    publishPath: out
     autoDeploy: true
     plan: free
     envVars:
@@ -19,9 +19,9 @@ services:
     repo: https://github.com/RiccardoSoroImola/devet_frontend
     branch: main
     env: node
-    root: .
-    # Installa le dipendenze dal root e costruisci il pacchetto apps/api
-    buildCommand: pnpm install --frozen-lockfile && pnpm --filter ./apps/api... run build
+    rootDir: apps/api
+    # Installa dalla workspace root e builda il package apps/api
+    buildCommand: pnpm install --frozen-lockfile --workspace-root && pnpm --filter ./apps/api... run build
     # Start esegue lo script start definito in apps/api/package.json
     startCommand: pnpm --filter ./apps/api... run start
     healthCheckPath: /health
@@ -32,11 +32,7 @@ services:
         value: production
 
 # NOTE:
-# - Questo file assume:
-#   - apps/web è una Next.js app che supporta `next build` + `next export` (l'output è apps/web/out).
-#   - apps/api è il backend con script build/start in apps/api/package.json.
-# - Le buildCommand/startCommand vengono eseguite nella directory 'root' (qui la root del repo),
-#   perciò usiamo comandi pnpm workspace-aware per assicurare installazione e build corrette.
-# - Non mettere segreti sensibili qui; configura DATABASE_URL, JWT_SECRET, ecc. nel pannello Environment di Render.
-# - Assicurati che il backend usi process.env.PORT per l'ascolto (es. const port = process.env.PORT || 3000).
-# - Se apps/web non può essere esportata staticamente (usa getServerSideProps), dovremo cambiare il frontend in type: web senza runtime: static e usare startCommand per eseguire next start.
+# - publishPath è relativo a rootDir (qui out => apps/web/out).
+# - Non inserire segreti sensibili in questo file; usa il dashboard Render per DATABASE_URL, JWT_SECRET, ecc.
+# - Assicurati che il backend usi process.env.PORT per l'ascolto.
+# - Se apps/web NON supporta next export (es. usa getServerSideProps), il frontend NON può essere statico: rimuovi runtime: static e configura startCommand per next start (server).
