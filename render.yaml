@@ -8,6 +8,7 @@ services:
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter ./apps/web... run build && pnpm --filter ./apps/web... run export
     staticPublishPath: apps/web/out
     autoDeploy: true
+    plan: free
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://devet-backend.onrender.com
@@ -22,6 +23,7 @@ services:
     startCommand: pnpm --filter ./apps/api... run start
     healthCheckPath: /health
     autoDeploy: true
+    plan: free
     envVars:
       - key: NODE_ENV
         value: production
