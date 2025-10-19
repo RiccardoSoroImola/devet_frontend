@@ -1,12 +1,14 @@
 # Restaurant ID Query Parameter Feature - Implementation Summary
 
+> **Note:** This document describes a specific feature implementation in the frontend application. For information about the overall monorepo structure, see [MONOREPO_SETUP.md](MONOREPO_SETUP.md).
+
 ## Overview
 This feature enables URL sharing with restaurant identification, allowing users to share direct links to specific restaurants. When a URL contains a restaurant ID parameter, the application automatically loads that restaurant's menu, bypassing the search screen.
 
 ## Files Modified/Created
 
 ### New Files
-1. **app/hooks/useRestaurantUrl.ts** (84 lines)
+1. **apps/web/app/hooks/useRestaurantUrl.ts** (84 lines)
    - Custom React hook for managing restaurant ID in URL query parameters
    - Functions:
      - `readId()`: Returns restaurant ID from URL (null if not present)
@@ -21,7 +23,7 @@ This feature enables URL sharing with restaurant identification, allowing users 
    - Implementation details and known limitations
 
 ### Modified Files
-1. **app/menu/MenuPage.tsx**
+1. **apps/web/app/menu/MenuPage.tsx**
    - Added import for `useEffect` and `Suspense` from React
    - Added import for `useRestaurantUrl` hook
    - Added optional `uuid` field to `Locale` type
