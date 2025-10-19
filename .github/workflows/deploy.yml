@@ -1,15 +1,17 @@
-name: Build and Deploy Static Site
+name: CI - Test and Build Verification
 
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch: # allows manual workflow trigger
 
 permissions:
-  contents: write # required to create/update the gh-pages branch
+  contents: read
 
 jobs:
-  build-and-deploy:
+  test-and-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,17 +23,19 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install
+
+      - name: Run linter
+        run: pnpm lint
+
+      - name: Run tests
+        run: pnpm test
 
       - name: Build project
-        env:
-          NEXT_PUBLIC_HASURA_URL: ${{ secrets.NEXT_PUBLIC_HASURA_URL }}
-          NEXT_PUBLIC_HASURA_ADMIN_SECRET: ${{ secrets.NEXT_PUBLIC_HASURA_ADMIN_SECRET }}
-        run: npm run build
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out   # Next.js static export output directory
+        run: pnpm build
