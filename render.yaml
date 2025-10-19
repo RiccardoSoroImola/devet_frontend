@@ -4,35 +4,24 @@ services:
     name: devet-frontend
     repo: https://github.com/RiccardoSoroImola/devet_frontend
     branch: main
-    rootDir: apps/web
-    # Esegui l'installazione nella workspace root e poi build/export del package apps/web
-    buildCommand: pnpm install --frozen-lockfile --workspace-root && pnpm --filter ./apps/web... run build && pnpm --filter ./apps/web... run export
-    publishPath: out
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter ./apps/web... run build && pnpm --filter ./apps/web... run export
+    staticPublishPath: apps/web/out
     autoDeploy: true
-    plan: free
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: "https://devet-backend.onrender.com"
+        value: https://devet-backend.onrender.com
 
   - type: web
     name: devet-backend
     repo: https://github.com/RiccardoSoroImola/devet_frontend
     branch: main
     env: node
-    rootDir: apps/api
-    # Installa dalla workspace root e builda il package apps/api
-    buildCommand: pnpm install --frozen-lockfile --workspace-root && pnpm --filter ./apps/api... run build
-    # Start esegue lo script start definito in apps/api/package.json
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter ./apps/api... run build
     startCommand: pnpm --filter ./apps/api... run start
     healthCheckPath: /health
     autoDeploy: true
-    plan: free
     envVars:
       - key: NODE_ENV
         value: production
-
-# NOTE:
-# - publishPath è relativo a rootDir (qui out => apps/web/out).
-# - Non inserire segreti sensibili in questo file; usa il dashboard Render per DATABASE_URL, JWT_SECRET, ecc.
-# - Assicurati che il backend usi process.env.PORT per l'ascolto.
-# - Se apps/web NON supporta next export (es. usa getServerSideProps), il frontend NON può essere statico: rimuovi runtime: static e configura startCommand per next start (server).
