@@ -8,7 +8,7 @@ export const exampleService = {
     };
   },
 
-  createExampleData: async (data: any) => {
+  createExampleData: async (data: unknown) => {
     // This is a placeholder service
     // Replace with actual business logic
     return {

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { exampleService } from '../services/exampleService';
 
 export const exampleController = {
-  getExample: async (req: Request, res: Response): Promise<void> => {
+  getExample: async (_req: Request, res: Response): Promise<void> => {
     try {
       const data = await exampleService.getExampleData();
       res.status(200).json(data);

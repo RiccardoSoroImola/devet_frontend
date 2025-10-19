@@ -1,11 +1,11 @@
-import express, { Request, Response } from 'express';
+import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { router } from './routes';
 
 dotenv.config();
 
-const app = express();
+const app: Application = express();
 const PORT = process.env.PORT || 4000;
 
 // Middleware
