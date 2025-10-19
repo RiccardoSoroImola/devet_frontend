@@ -11,10 +11,11 @@ export const exampleService = {
   createExampleData: async (data: unknown) => {
     // This is a placeholder service
     // Replace with actual business logic
+    // Note: For production use, consider using a proper UUID library
     return {
       message: 'Data created successfully',
       data,
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 11),
     };
   },
 };
